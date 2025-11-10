@@ -32,6 +32,14 @@ from oasis.social_platform import Channel
 from oasis.social_platform.config import UserInfo
 from oasis.social_platform.typing import ActionType
 
+# Watermark integration
+try:
+    from oasis.watermark import WatermarkManager
+    WATERMARK_AVAILABLE = True
+except ImportError:
+    WATERMARK_AVAILABLE = False
+    WatermarkManager = None
+
 if TYPE_CHECKING:
     from oasis.social_agent import AgentGraph
 
@@ -67,11 +75,21 @@ class SocialAgent(ChatAgent):
                  available_actions: list[ActionType] = None,
                  tools: Optional[List[Union[FunctionTool, Callable]]] = None,
                  max_iteration: int = 1,
-                 interview_record: bool = False):
+                 interview_record: bool = False,
+                 watermark_manager: Optional[Any] = None):
         self.social_agent_id = agent_id
         self.user_info = user_info
         self.channel = channel or Channel()
         self.env = SocialEnvironment(SocialAction(agent_id, self.channel))
+        
+        # Watermark integration
+        self.watermark_manager = watermark_manager
+        if watermark_manager and WATERMARK_AVAILABLE:
+            agent_log.info(f"Agent {agent_id}: Watermark enabled")
+        elif watermark_manager and not WATERMARK_AVAILABLE:
+            agent_log.warning(
+                f"Agent {agent_id}: Watermark requested but module not available"
+            )
         if user_info_template is None:
             system_message_content = self.user_info.to_system_message()
         else:
@@ -137,9 +155,28 @@ class SocialAgent(ChatAgent):
                 f"Agent {self.social_agent_id} observing environment: "
                 f"{env_prompt}")
             response = await self.astep(user_msg)
+            
             for tool_call in response.info['tool_calls']:
                 action_name = tool_call.tool_name
                 args = tool_call.args
+                
+                # 🎯 Watermark Integration Point 1: Log action with watermark
+                if self.watermark_manager and self.watermark_manager.enabled:
+                    # Get the current bit being embedded
+                    current_bit = self.watermark_manager.get_next_bit()
+                    if current_bit:
+                        # Log the watermarked action
+                        self.watermark_manager.log_action(
+                            agent_id=self.social_agent_id,
+                            action_name=action_name,
+                            action_args=args,
+                            bit=current_bit
+                        )
+                        agent_log.info(
+                            f"Agent {self.social_agent_id} - Watermark bit "
+                            f"'{current_bit}' embedded in action: {action_name}"
+                        )
+                
                 agent_log.info(f"Agent {self.social_agent_id} performed "
                                f"action: {action_name} with args: {args}")
                 if action_name not in ALL_SOCIAL_ACTIONS:
