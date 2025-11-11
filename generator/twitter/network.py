@@ -19,7 +19,7 @@ from tqdm import tqdm
 
 data_path = './users'
 
-with open(f'{data_path}.json', 'r') as json_file:
+with open(f'{data_path}.json', 'r', encoding='utf-8') as json_file:
     users_1 = json.load(json_file)
 
 users = users_1

@@ -137,7 +137,7 @@ class SocialAgent(ChatAgent):
             model=model,
             scheduling_strategy='random_model',
             tools=all_tools,
-            token_limit=8000,  # ✅ 增加 token limit,避免水印阶段的 token 预算不足
+            token_limit=16000,  # ✅ 增加到 16K 以支持更长的对话历史（适配 DeepSeek）
         )
         self.max_iteration = max_iteration
         self.interview_record = interview_record

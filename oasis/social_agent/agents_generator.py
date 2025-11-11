@@ -571,7 +571,7 @@ async def generate_reddit_agent_graph(
     available_actions: list[ActionType] = None,
 ) -> AgentGraph:
     agent_graph = AgentGraph()
-    with open(profile_path, "r") as file:
+    with open(profile_path, "r", encoding='utf-8') as file:
         agent_info = json.load(file)
 
     async def process_agent(i):

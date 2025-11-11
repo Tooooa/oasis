@@ -1,23 +1,22 @@
 {
     "_comment": "=== OASIS 水印集成配置文件 ===",
-    "_comment_usage": "复制此文件为 config.json 并填入你的配置",
     
     "_comment_api": "=== API 配置 ===",
     "api_provider": "deepseek",
     "deepseek": {
-        "api_key": "your-deepseek-api-key-here",
+        "api_key": "sk-5fa9b50054194880bfa66023555f857d",
         "base_url": "https://api.deepseek.com",
         "model": "deepseek-chat"
     },
     "openai": {
-        "api_key": "your-openai-api-key-here",
+        "api_key": "",
         "base_url": "https://api.openai.com/v1",
         "model": "gpt-4o-mini"
     },
     
     "_comment_simulation": "=== 模拟配置 ===",
     "num_agents": 2,
-    "num_rounds": 3,
+    "num_rounds": 5,
     "platform": "reddit",
     
     "_comment_context": "=== 上下文管理 ===",
