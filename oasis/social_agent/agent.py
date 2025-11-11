@@ -126,6 +126,7 @@ class SocialAgent(ChatAgent):
             model=model,
             scheduling_strategy='random_model',
             tools=all_tools,
+            token_limit=8000,  # ✅ 增加 token limit,避免水印阶段的 token 预算不足
         )
         self.max_iteration = max_iteration
         self.interview_record = interview_record
@@ -140,9 +141,233 @@ class SocialAgent(ChatAgent):
             "\n"
             "What do you think Helen should do?")
 
+    def _build_action_context(self) -> str:
+        """
+        构建上下文密钥字符串（用于水印 PRG 种子）
+        
+        使用最近 3 个行为作为上下文，与 demo_watermark_with_deepseek.py 保持一致
+        
+        Returns:
+            str: "like_post||create_comment||follow" 或空字符串
+        """
+        if not hasattr(self, '_action_history'):
+            self._action_history = []
+        
+        window_size = 3
+        recent_actions = self._action_history[-window_size:]
+        return "||".join(recent_actions) if recent_actions else ""
+
+    async def _get_action_probabilities(self, env_prompt: str) -> dict[str, float]:
+        """
+        通过 LLM 获取所有可用行为的概率分布
+        
+        策略: 让 LLM 返回 JSON 格式的概率估计
+        
+        Args:
+            env_prompt: 环境观察描述
+            
+        Returns:
+            dict: {"like_post": 0.3, "create_comment": 0.25, ...}
+        """
+        # 获取所有可用行为名称
+        available_actions = [tool.func.__name__ for tool in self.action_tools]
+        actions_str = ", ".join(available_actions)
+        
+        # 构造概率查询提示
+        prompt = f"""You are observing a social media environment:
+{env_prompt}
+
+Based on this observation and your profile, estimate the probability of performing each action.
+Return ONLY a JSON object with probabilities (must sum to 1.0):
+
+Available actions: {actions_str}
+
+Output format:
+{{"action_name": probability, ...}}
+
+Example:
+{{"like_post": 0.3, "create_comment": 0.25, "follow": 0.2, "refresh": 0.25}}
+"""
+        
+        # 调用 LLM
+        user_msg = BaseMessage.make_user_message(
+            role_name="User",
+            content=prompt
+        )
+        
+        try:
+            response = await self.astep(user_msg)
+            content = response.msgs[0].content
+            
+            # 解析 JSON
+            import json
+            import re
+            
+            # 提取 JSON（支持多种格式）
+            json_match = re.search(r'\{[^}]+\}', content, re.DOTALL)
+            if json_match:
+                probabilities = json.loads(json_match.group())
+                
+                # 归一化
+                total = sum(probabilities.values())
+                if total > 0:
+                    probabilities = {k: v/total for k, v in probabilities.items()}
+                
+                agent_log.info(
+                    f"Agent {self.social_agent_id} - Probabilities extracted: "
+                    f"{probabilities}"
+                )
+                return probabilities
+        except Exception as e:
+            agent_log.warning(
+                f"Agent {self.social_agent_id} - Failed to parse probabilities: {e}"
+            )
+        
+        # 回退：均匀分布
+        agent_log.warning(
+            f"Agent {self.social_agent_id} - Using uniform distribution as fallback"
+        )
+        return {action: 1.0/len(available_actions) for action in available_actions}
+
+    async def _execute_watermarked_action(
+        self, 
+        action_name: str, 
+        env_prompt: str
+    ) -> Any:
+        """
+        执行水印选定的行为
+        
+        策略: 让 LLM 为选定的行为生成参数并执行
+        
+        Args:
+            action_name: 要执行的行为名称（由水印选择）
+            env_prompt: 环境观察
+            
+        Returns:
+            执行结果
+        """
+        # 构造强制执行的提示
+        prompt = f"""You are observing a social media environment:
+{env_prompt}
+
+You MUST perform the action: {action_name}
+
+Generate appropriate arguments for this action and execute it. Do not consider other actions.
+"""
+        
+        user_msg = BaseMessage.make_user_message(
+            role_name="User",
+            content=prompt
+        )
+        
+        try:
+            # 调用 LLM，它会自动选择工具并执行
+            response = await self.astep(user_msg)
+            
+            # 记录到历史
+            if not hasattr(self, '_action_history'):
+                self._action_history = []
+            self._action_history.append(action_name)
+            
+            # 验证执行结果
+            if 'tool_calls' in response.info:
+                for tool_call in response.info['tool_calls']:
+                    executed_action = tool_call.tool_name
+                    args = tool_call.args
+                    
+                    if executed_action == action_name:
+                        agent_log.info(
+                            f"Agent {self.social_agent_id} - Watermark action "
+                            f"'{action_name}' executed successfully with args: {args}"
+                        )
+                    else:
+                        agent_log.warning(
+                            f"Agent {self.social_agent_id} - LLM executed "
+                            f"'{executed_action}' instead of watermark-selected "
+                            f"'{action_name}'"
+                        )
+            
+            return response
+        except Exception as e:
+            agent_log.error(
+                f"Agent {self.social_agent_id} - Error executing watermarked "
+                f"action '{action_name}': {e}"
+            )
+            raise
+
     async def perform_action_by_llm(self):
+        """
+        执行 LLM 驱动的行为决策
+        
+        如果启用水印:
+            1. 获取行为概率分布（第1次LLM调用）
+            2. 使用水印修改概率
+            3. 执行选定行为（第2次LLM调用）
+        否则:
+            正常 LLM 流程
+        """
         # Get posts:
         env_prompt = await self.env.to_text_prompt()
+        
+        # 🎯 水印集成点：两阶段调用法
+        if self.watermark_manager and self.watermark_manager.enabled:
+            try:
+                agent_log.info(
+                    f"Agent {self.social_agent_id} - Watermark enabled, "
+                    f"using two-phase approach"
+                )
+                
+                # === 阶段 1: 获取概率分布 ===
+                agent_log.info(
+                    f"Agent {self.social_agent_id} - Phase 1: Getting action probabilities"
+                )
+                probabilities = await self._get_action_probabilities(env_prompt)
+                
+                # === 阶段 2: 水印采样 ===
+                agent_log.info(
+                    f"Agent {self.social_agent_id} - Phase 2: Watermark sampling"
+                )
+                context_for_key = self._build_action_context()
+                round_num = self.watermark_manager.stats.get('rounds_completed', 0)
+                
+                selected_action, target_list, bits_embedded, context_used = \
+                    self.watermark_manager.sample_behavior_watermark(
+                        probabilities=probabilities,
+                        round_num=round_num,
+                        context_for_key=context_for_key
+                    )
+                
+                agent_log.info(
+                    f"Agent {self.social_agent_id} - Watermark selected action: "
+                    f"'{selected_action}', bits embedded: {bits_embedded}"
+                )
+                
+                # === 阶段 3: 执行选定行为 ===
+                agent_log.info(
+                    f"Agent {self.social_agent_id} - Phase 3: Executing watermarked action"
+                )
+                response = await self._execute_watermarked_action(
+                    selected_action, env_prompt
+                )
+                
+                # 更新统计
+                self.watermark_manager.stats['rounds_completed'] += 1
+                
+                agent_log.info(
+                    f"Agent {self.social_agent_id} - Watermark integration complete"
+                )
+                
+                return response
+                
+            except Exception as e:
+                agent_log.error(
+                    f"Agent {self.social_agent_id} - Watermark integration failed: {e}, "
+                    f"falling back to normal mode"
+                )
+                # 回退到正常模式
+                pass
+        
+        # 无水印模式：正常流程
         user_msg = BaseMessage.make_user_message(
             role_name="User",
             content=(
@@ -159,23 +384,6 @@ class SocialAgent(ChatAgent):
             for tool_call in response.info['tool_calls']:
                 action_name = tool_call.tool_name
                 args = tool_call.args
-                
-                # 🎯 Watermark Integration Point 1: Log action with watermark
-                if self.watermark_manager and self.watermark_manager.enabled:
-                    # Get the current bit being embedded
-                    current_bit = self.watermark_manager.get_next_bit()
-                    if current_bit:
-                        # Log the watermarked action
-                        self.watermark_manager.log_action(
-                            agent_id=self.social_agent_id,
-                            action_name=action_name,
-                            action_args=args,
-                            bit=current_bit
-                        )
-                        agent_log.info(
-                            f"Agent {self.social_agent_id} - Watermark bit "
-                            f"'{current_bit}' embedded in action: {action_name}"
-                        )
                 
                 agent_log.info(f"Agent {self.social_agent_id} performed "
                                f"action: {action_name} with args: {args}")
