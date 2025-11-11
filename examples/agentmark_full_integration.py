@@ -29,8 +29,8 @@ import asyncio
 import os
 import sys
 
-# Add AgentMark to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../AgentMark/new_code')))
+# Add parent directory to path to import oasis module
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from camel.models import ModelFactory
 from camel.types import ModelPlatformType, ModelType
