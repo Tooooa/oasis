@@ -1,0 +1,8 @@
+# 忽略所有数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 但保留目录结构和说明文件
+!.gitkeep
+!README.md

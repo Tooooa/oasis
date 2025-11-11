@@ -82,9 +82,20 @@ class SocialAgent(ChatAgent):
         self.channel = channel or Channel()
         self.env = SocialEnvironment(SocialAction(agent_id, self.channel))
         
-        # Watermark integration
-        self.watermark_manager = watermark_manager
-        if watermark_manager and WATERMARK_AVAILABLE:
+        # Watermark integration - 🎯 自动为每个agent创建独立的水印管理器
+        if watermark_manager is None and WATERMARK_AVAILABLE:
+            # 自动创建独立的WatermarkManager，使用agent_id作为水印内容
+            self.watermark_manager = WatermarkManager(
+                enabled=True,
+                mode="full",
+                agent_id=agent_id,
+                log_dir="./log"
+            )
+            agent_log.info(f"Agent {agent_id}: Auto-created independent WatermarkManager")
+        else:
+            self.watermark_manager = watermark_manager
+            
+        if self.watermark_manager and WATERMARK_AVAILABLE:
             agent_log.info(f"Agent {agent_id}: Watermark enabled")
         elif watermark_manager and not WATERMARK_AVAILABLE:
             agent_log.warning(

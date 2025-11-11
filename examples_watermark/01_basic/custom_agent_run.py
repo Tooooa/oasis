@@ -13,7 +13,10 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# 修复路径：从 examples_watermark/01_basic/ 回到项目根目录
+# 当前位置: oasis/examples_watermark/01_basic/custom_agent_run.py
+# 需要回到: oasis/ (项目根目录)
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from camel.models import ModelFactory
 from camel.types import ModelPlatformType, ModelType
@@ -28,14 +31,17 @@ from oasis.watermark import WatermarkManager
 def load_config(config_path: str = None) -> dict:
     """
     加载配置文件
-    优先级: 指定路径 > ./config.json > ../config.json > 默认配置
+    优先级: 指定路径 > 相对于项目根目录的 config.json
     """
+    # 计算项目根目录 (oasis/)
+    project_root = Path(__file__).parent.parent.parent
+    
     # 尝试的配置文件路径列表
     search_paths = [
         config_path,
-        "./config.json",
-        "../config.json",
-        str(Path(__file__).parent.parent / "config.json"),
+        "./config_watermark.json",                    # 当前目录（运行时）
+        str(project_root / "config.json"),            # 项目根目录
+        str(Path(__file__).parent.parent / "config_watermark.json"),  # examples_watermark/
     ]
     
     for path in search_paths:
@@ -70,8 +76,8 @@ def load_config(config_path: str = None) -> dict:
             "ecc_method": "parity",
             "embedding_strategy": "cyclic"
         },
-        "log_dir": "./log",
-        "database_path": "./simulation.db"
+        "log_dir": str(Path(__file__).parent.parent.parent / "outputs" / "logs" / "watermark"),
+        "database_path": str(Path(__file__).parent.parent.parent / "outputs" / "databases" / "current" / "simulation.db")
     }
 
 
@@ -146,25 +152,14 @@ async def run_custom_simulation():
         )
     print(f"   ✅ 模型创建成功")
     
-    # 4. 定义可用行为
-    available_actions = [
-        ActionType.LIKE_POST,
-        ActionType.UNLIKE_POST,
-        ActionType.DISLIKE_POST,
-        ActionType.CREATE_POST,
-        ActionType.CREATE_COMMENT,
-        ActionType.REPOST,
-        ActionType.QUOTE_POST,
-        ActionType.FOLLOW,
-        ActionType.UNFOLLOW,
-        ActionType.MUTE,
-        ActionType.UNMUTE,
-        ActionType.SEARCH_USER,
-        ActionType.SEARCH_POSTS,
-        ActionType.REFRESH,
-    ]
+    # 4. 定义可用行为（使用 OASIS 默认 Reddit 行为列表）
+    # ✅ 使用与 OASIS 原始一致的行为序列
+    # 注意：行为序列在整个模拟过程中保持不变，不会根据上下文动态调整
+    available_actions = ActionType.get_default_reddit_actions()
+    
     print(f"\n📋 可用行为: {[a.value for a in available_actions]}")
     print(f"   ✅ 共 {len(available_actions)} 种行为可供选择")
+    print(f"   ℹ️  行为序列在模拟过程中保持不变（OASIS 原始设计）")
     
     # 5. 创建 Agent Graph
     print(f"\n📋 创建 {num_agents} 个 Agent...")
@@ -348,14 +343,35 @@ async def run_custom_simulation():
                 print(f"   ✅ 完美匹配: 提取的每一位都与原始bit_stream循环一致")
             
             print(f"\n🔐 ECC验证状态:")
+            complete_messages = stats.get('complete_messages', 0)
+            failed_validations = stats.get('failed_validations', 0)
+            partial_bits = stats.get('partial_bits', 0)
+            
             if stats.get('valid', False):
-                print(f"   - 状态: ✅ 完全有效")
-                print(f"   - 说明: 所有块通过ECC校验")
+                # 验证成功：至少有一个完整块验证通过
+                if complete_messages > 0 and failed_validations == 0:
+                    print(f"   - 状态: ✅ 完全有效")
+                    print(f"   - 说明: {complete_messages} 个完整块全部通过ECC校验")
+                else:
+                    print(f"   - 状态: ✅ 验证成功")
+                    print(f"   - 说明: {complete_messages - failed_validations}/{complete_messages} 个完整块通过ECC校验")
+                
+                if partial_bits > 0:
+                    partial_valid = stats.get('partial_is_valid', False)
+                    if partial_valid:
+                        print(f"   - 部分块: {partial_bits} bits 验证成功")
+                    else:
+                        print(f"   - 部分块: {partial_bits} bits 未验证（不影响结果）")
             else:
-                print(f"   - 状态: ⚠️ 部分失败")
-                print(f"   - 说明: {stats.get('failed_validations', 0)} 块ECC验证失败")
-                if stats.get('partial_bits', 0) > 0:
-                    print(f"   - 原因: 提取的 {stats.get('partial_bits', 0)} bits 不足完整块({stats.get('complete_messages', 0) + 1} * 9 = {(stats.get('complete_messages', 0) + 1) * 9} bits)")
+                # 验证失败
+                if complete_messages == 0:
+                    print(f"   - 状态: ❌ 无法验证")
+                    print(f"   - 说明: 提取的比特数不足一个完整块")
+                    print(f"   - 提示: 需要至少 9 bits（含ECC）才能验证")
+                else:
+                    print(f"   - 状态: ❌ 验证失败")
+                    print(f"   - 说明: {complete_messages} 个完整块中有 {failed_validations} 个验证失败")
+                    print(f"   - 提示: 可能是嵌入过程中出现错误")
             
             if accuracy == 100 and stats.get('valid', False):
                 print(f"\n✅ Agent {agent.agent_index} 水印完整提取并验证成功！")

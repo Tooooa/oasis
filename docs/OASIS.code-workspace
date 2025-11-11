@@ -1,11 +1,11 @@
 {
 	"folders": [
 		{
-			"path": "../.."
-		},
-		{
-			"path": "../../../AgentMark/new_code"
+			"name": "oasis",
+			"path": ".."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"powershell.cwd": "oasis"
+	}
 }

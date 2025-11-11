@@ -41,20 +41,29 @@ def check_and_strip_parity_bit(message_bits: str) -> tuple:
     
     Args:
         message_bits (str): 9位二进制字符串(8位数据 + 1位校验位)
+                           如果不足9位,会进行部分校验
         
     Returns:
         tuple: (data_bits, is_valid)
-            - data_bits (str): 原始8位数据
-            - is_valid (bool): 校验是否通过
+            - data_bits (str): 原始数据(最多8位)
+            - is_valid (bool): 校验是否通过(不足9位时返回None表示无法完整校验)
             
     Example:
         >>> check_and_strip_parity_bit("110011000")
         ("11001100", True)
         >>> check_and_strip_parity_bit("110011001")  # 校验位错误
         ("11001100", False)
+        >>> check_and_strip_parity_bit("1100110")  # 不足9位
+        ("1100110", None)
     """
-    if len(message_bits) != 9:
-        raise ValueError(f"预期9位消息(8位数据+1位校验),但收到 {len(message_bits)} 位")
+    if len(message_bits) < 9:
+        # 不足9位,无法完整校验,返回部分数据
+        # 但不抛出异常,允许部分验证
+        return message_bits, None
+    
+    if len(message_bits) > 9:
+        # 超过9位,截断到9位进行校验
+        message_bits = message_bits[:9]
     
     data_bits = message_bits[:8]
     received_parity = message_bits[8]
@@ -123,16 +132,21 @@ def decode_and_correct_hamming(message_bits: str) -> str:
     能够纠正1位错误,检测2位错误
     
     Args:
-        message_bits (str): 21位编码比特串
+        message_bits (str): 21位编码比特串(如果不足21位,会补零处理)
         
     Returns:
         str: 纠正后的16位原始数据
         
     Note:
         使用标准汉明码纠错算法
+        如果输入不足21位,会自动补零到21位后再解码
     """
-    if len(message_bits) != 21:
-        raise ValueError(f"预期21位消息,但收到 {len(message_bits)} 位")
+    if len(message_bits) < 21:
+        # 不足21位,补零到21位
+        message_bits = message_bits.ljust(21, '0')
+    elif len(message_bits) > 21:
+        # 超过21位,截断到21位
+        message_bits = message_bits[:21]
     
     # 转换为数组(索引0不用, 1-21有效)
     received = [0] + [int(b) for b in message_bits]
@@ -220,16 +234,17 @@ def decode_message(message_bits: str, config: dict) -> dict:
     根据配置,解码一个消息包,纠错并返回原始数据和验证信息
     
     Args:
-        message_bits (str): 编码后的消息比特串
+        message_bits (str): 编码后的消息比特串(允许不完整)
         config (dict): 水印配置字典
         
     Returns:
         dict: 解码结果字典
             - decoded_payload (str): 解码后的原始数据
-            - valid (bool): 消息是否有效/是否通过校验
+            - valid (bool/None): 消息是否有效/是否通过校验(None表示不完整无法完全校验)
             - corrected (bool): 是否进行了错误纠正
             - ecc_method (str): 使用的纠错码方法
             - error (str, optional): 错误信息(如果验证失败)
+            - partial (bool): 是否为部分提取
             
     Example:
         >>> config = {"payload_bit_length": 8, "ecc_method": "parity"}
@@ -242,41 +257,63 @@ def decode_message(message_bits: str, config: dict) -> dict:
         }
     """
     ecc_method = config.get("ecc_method", "none")
+    payload_length = config.get("payload_bit_length", 8)
     
     if ecc_method == "parity":
+        expected_length = payload_length + 1
+        is_partial = len(message_bits) < expected_length
+        
         data_bits, is_valid = check_and_strip_parity_bit(message_bits)
+        
+        if is_partial:
+            error_msg = f"部分提取: 收到 {len(message_bits)} 位, 期望 {expected_length} 位"
+        else:
+            error_msg = None if is_valid else 'Parity check failed'
+        
         return {
             'decoded_payload': data_bits,
             'valid': is_valid,
             'corrected': False,  # 奇偶校验只检测,不纠错
             'ecc_method': 'parity',
-            'error': None if is_valid else 'Parity check failed'
+            'error': error_msg,
+            'partial': is_partial
         }
         
     elif ecc_method == "hamming":
-        # 汉明码解码会自动纠错
-        # 我们需要知道是否发生了纠错
+        expected_length = 21
+        is_partial = len(message_bits) < expected_length
+        
+        # 汉明码解码会自动纠错(不足21位会补零)
         corrected_data = decode_and_correct_hamming(message_bits)
         
         # 重新编码,如果和原始不同,说明发生了纠错
         re_encoded = add_hamming_code(corrected_data)
-        was_corrected = (re_encoded != message_bits)
+        was_corrected = (re_encoded != message_bits[:21])  # 只比较前21位
+        
+        error_msg = f"部分提取: 收到 {len(message_bits)} 位, 期望 {expected_length} 位" if is_partial else None
         
         return {
             'decoded_payload': corrected_data,
-            'valid': True,  # 汉明码总是能纠正1位错误
+            'valid': True if not is_partial else None,  # 部分数据无法保证完全有效
             'corrected': was_corrected,
             'ecc_method': 'hamming',
-            'error': None
+            'error': error_msg,
+            'partial': is_partial
         }
         
     elif ecc_method == "none":
+        expected_length = payload_length
+        is_partial = len(message_bits) < expected_length
+        
+        error_msg = f"部分提取: 收到 {len(message_bits)} 位, 期望 {expected_length} 位" if is_partial else None
+        
         return {
             'decoded_payload': message_bits,
-            'valid': True,
+            'valid': True if not is_partial else None,
             'corrected': False,
             'ecc_method': 'none',
-            'error': None
+            'error': error_msg,
+            'partial': is_partial
         }
         
     else:

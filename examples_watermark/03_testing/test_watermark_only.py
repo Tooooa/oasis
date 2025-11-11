@@ -11,8 +11,10 @@ without dependencies, use test_watermark_standalone.py instead.
 import os
 import sys
 
-# Add parent directory to path to import oasis module
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# 修复路径：从 examples_watermark/03_testing/ 回到项目根目录
+# 当前位置: oasis/examples_watermark/03_testing/test_watermark_only.py
+# 需要回到: oasis/ (项目根目录)
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, parent_dir)
 
 try:
@@ -36,6 +38,12 @@ def test_watermark_embedding_extraction():
     print("\n📋 Step 1: Initialize WatermarkManager")
     payload = "11001101"  # 8-bit message
     
+    # 使用统一的输出目录
+    from pathlib import Path
+    project_root = Path(__file__).parent.parent.parent
+    log_dir = str(project_root / "outputs" / "logs" / "watermark" / "2025-11")
+    Path(log_dir).mkdir(parents=True, exist_ok=True)
+    
     wm = WatermarkManager(
         enabled=True,
         mode="full",
@@ -45,7 +53,7 @@ def test_watermark_embedding_extraction():
             "embedding_strategy": "cyclic"
         },
         bit_stream=payload,
-        log_dir="./log"
+        log_dir=log_dir
     )
     
     print(f"✅ Payload: {payload}")
@@ -125,11 +133,15 @@ def test_different_payloads():
     results = []
     
     for payload in test_cases:
+        from pathlib import Path
+        project_root = Path(__file__).parent.parent.parent
+        log_dir = str(project_root / "outputs" / "logs" / "watermark" / "2025-11")
+        
         wm = WatermarkManager(
             enabled=True,
             config={"payload_bit_length": 8, "ecc_method": "parity"},
             bit_stream=payload,
-            log_dir="./log"
+            log_dir=log_dir
         )
         
         # Embed

@@ -16,8 +16,10 @@ import asyncio
 from pathlib import Path
 from openai import AsyncOpenAI
 
-# 添加项目根目录到路径
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# 修复路径：从 examples_watermark/02_advanced/ 回到项目根目录
+# 当前位置: oasis/examples_watermark/02_advanced/deepseek_demo.py
+# 需要回到: oasis/ (项目根目录)
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from oasis.watermark import WatermarkManager
 
@@ -25,11 +27,14 @@ from oasis.watermark import WatermarkManager
 # ========== 配置加载 ==========
 def load_config(config_path: str = None) -> dict:
     """加载配置文件"""
+    # 计算项目根目录
+    project_root = Path(__file__).parent.parent.parent
+    
     search_paths = [
         config_path,
-        "./config.json",
-        "../config.json",
-        str(Path(__file__).parent.parent / "config.json"),
+        "./config_watermark.json",
+        str(project_root / "config.json"),
+        str(Path(__file__).parent.parent / "config_watermark.json"),
     ]
     
     for path in search_paths:
@@ -258,7 +263,9 @@ async def run_simulation():
     print("="*60)
     
     # 1. 初始化 WatermarkManager
-    log_dir = Path(__file__).parent.parent / "test_log" / "deepseek_demo"
+    # 使用统一的 outputs/logs/watermark 目录
+    project_root = Path(__file__).parent.parent.parent
+    log_dir = project_root / "outputs" / "logs" / "watermark" / "2025-11"
     log_dir.mkdir(parents=True, exist_ok=True)
     
     payload = "11001101"  # 8-bit 载荷

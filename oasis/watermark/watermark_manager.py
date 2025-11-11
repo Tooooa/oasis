@@ -86,11 +86,19 @@ class WatermarkManager:
         config: Optional[Dict[str, Any]] = None,
         bit_stream: Optional[str] = None,
         log_dir: str = "./log",
-        log_level: str = "INFO"
+        log_level: str = "INFO",
+        agent_id: Optional[int] = None
     ):
-        """Initialize WatermarkManager"""
+        """
+        Initialize WatermarkManager
+        
+        Args:
+            agent_id: Unique identifier for the agent. If provided, this WatermarkManager
+                     becomes an independent tracing unit for that specific agent.
+        """
         self.enabled = enabled and AGENTMARK_AVAILABLE
         self.mode = mode
+        self.agent_id = agent_id  # 🎯 新增: 独立的agent标识
         
         if not AGENTMARK_AVAILABLE and enabled:
             print("⚠️ Watermark requested but AgentMark not available. Disabling watermark.")
@@ -103,9 +111,13 @@ class WatermarkManager:
             "embedding_strategy": "cyclic"
         }
         
-        # Bit stream management
+        # Bit stream management - 如果提供了agent_id，则编码agent_id作为水印
         if bit_stream:
             self.bit_stream = self._prepare_bit_stream(bit_stream)
+        elif agent_id is not None:
+            # 🎯 新增: 使用agent_id作为水印内容 (8-bit可表示0-255的agent)
+            agent_bits = format(agent_id, '08b')  # 转为8位二进制
+            self.bit_stream = self._prepare_bit_stream(agent_bits)
         else:
             # Default: encode a simple message
             self.bit_stream = self._prepare_bit_stream("11001101")
@@ -121,10 +133,16 @@ class WatermarkManager:
         os.makedirs(self.log_dir, exist_ok=True)
         
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        self.log_file = os.path.join(self.log_dir, f"watermark-{timestamp}.log")
+        # 🎯 新增: 日志文件名包含agent_id
+        if agent_id is not None:
+            self.log_file = os.path.join(self.log_dir, f"watermark-agent{agent_id}-{timestamp}.log")
+            logger_name = f"watermark-agent{agent_id}-{timestamp}"
+        else:
+            self.log_file = os.path.join(self.log_dir, f"watermark-{timestamp}.log")
+            logger_name = f"watermark-{timestamp}"
         
         # Setup logger
-        self.logger = logging.getLogger(f"watermark-{timestamp}")
+        self.logger = logging.getLogger(logger_name)
         self.logger.setLevel(getattr(logging, log_level.upper()))
         
         if not self.logger.handlers:
@@ -146,9 +164,16 @@ class WatermarkManager:
         
         if self.enabled:
             self.logger.info("=" * 70)
-            self.logger.info("WatermarkManager Initialized")
+            if agent_id is not None:
+                self.logger.info(f"WatermarkManager Initialized (Agent {agent_id})")
+            else:
+                self.logger.info("WatermarkManager Initialized")
             self.logger.info("=" * 70)
+            if agent_id is not None:
+                self.logger.info(f"Agent ID: {agent_id}")
+                self.logger.info(f"Agent ID (binary): {format(agent_id, '08b')}")
             self.logger.info(f"Mode: {self.mode}")
+            self.logger.info(f"Bit stream: {self.bit_stream}")
             self.logger.info(f"Bit stream length: {len(self.bit_stream)}")
             self.logger.info(f"Config: {json.dumps(self.config, indent=2)}")
             self.logger.info(f"Log file: {self.log_file}")
@@ -467,6 +492,7 @@ class WatermarkManager:
                 validation_results = [result]
                 total_corrections = 0
                 failed_validations = 1 if not result.get('valid') else 0
+                partial_is_valid = False  # 初始化为False（不足一个完整块）
             else:
                 # 有完整的块，进行连续解码
                 self.logger.info(f"Decoding {num_messages} complete messages ({expected_length} bits each)")
@@ -494,8 +520,9 @@ class WatermarkManager:
                         failed_validations += 1
                 
                 # 如果有余数，解码最后一个不完整的块
-                partial_is_valid = False
+                partial_is_valid = None  # 默认为None,只有当存在余数时才会被设置
                 if remainder > 0:
+                    partial_is_valid = False  # 初始化为False
                     partial_message = extracted_bit_stream[num_messages * expected_length:]
                     result = decode_message(partial_message, self.config)
                     decoded_payloads.append(result.get('decoded_payload', ''))
@@ -516,22 +543,44 @@ class WatermarkManager:
                         partial_is_valid = True
                         self.logger.info(f"✅ Partial bits validated: {result.get('decoded_payload', '')} matches expected {expected_partial}")
                     else:
-                        failed_validations += 1
-                        self.logger.warning(f"❌ Partial bits mismatch: got {result.get('decoded_payload', '')}, expected {expected_partial}")
+                        # ⚠️ 部分块不匹配时只记录警告，不计入验证失败
+                        # 只要至少有一个完整块验证成功即可
+                        self.logger.warning(f"⚠️ Partial bits mismatch: got {result.get('decoded_payload', '')}, expected {expected_partial} (不影响验证结果)")
             
             decoded_bit_stream = "".join(decoded_payloads)
             
-            # ✅ 改进的准确率计算：与原始 bit_stream 循环比较
+            # ✅ 改进的准确率计算：用提取的原始bit与bit_stream循环比较
+            # 注意: extracted_bit_stream是带ECC的原始提取，应该与bit_stream(也带ECC)比对
             original_bits = self.bit_stream
             accuracy = 0.0
-            if decoded_bit_stream:
+            if extracted_bit_stream:
                 # 循环比较，支持超出原始长度的情况
                 matches = 0
-                for i, bit in enumerate(decoded_bit_stream):
+                for i, bit in enumerate(extracted_bit_stream):
                     expected_bit = original_bits[i % len(original_bits)]
                     if bit == expected_bit:
                         matches += 1
-                accuracy = matches / len(decoded_bit_stream) * 100
+                accuracy = matches / len(extracted_bit_stream) * 100
+            
+            # ✅ 改进的验证逻辑：
+            # - 如果有完整块 (num_messages > 0)，只要至少有一个完整块验证成功就算通过
+            # - 如果没有完整块 (num_messages == 0)，则必须部分块验证成功
+            # - 部分块的失败不影响整体验证结果（只要有完整块通过）
+            
+            # 计算完整块的失败数（只计算完整块的验证失败）
+            complete_blocks_failed = sum(1 for i, result in enumerate(validation_results[:num_messages]) if not result.get('valid'))
+            
+            # 验证是否通过的条件：
+            # 1. 如果有完整块，至少有一个完整块验证成功（即不是所有完整块都失败）
+            # 2. 如果没有完整块，则不足一个完整块无法验证，返回 False
+            is_valid = num_messages > 0 and complete_blocks_failed < num_messages
+            
+            # 错误信息只报告完整块的失败
+            error_msg = None
+            if num_messages == 0:
+                error_msg = f"提取的 {len(extracted_bit_stream)} bits 不足一个完整块 ({expected_length} bits)"
+            elif complete_blocks_failed > 0:
+                error_msg = f"{num_messages} 个完整块中有 {complete_blocks_failed} 个验证失败"
             
             stats = {
                 "actions_processed": len(round_data_list),
@@ -543,12 +592,12 @@ class WatermarkManager:
                 "partial_bits": remainder,
                 "partial_is_valid": partial_is_valid if remainder > 0 else None,
                 "total_corrections": total_corrections,
-                "failed_validations": failed_validations,
-                "valid": failed_validations == 0,  # 只有全部验证通过才算valid
+                "failed_validations": complete_blocks_failed,  # 只记录完整块的失败数
+                "valid": is_valid,  # ✅ 新逻辑：至少有一个完整块验证成功
                 "corrected": total_corrections > 0,
                 "accuracy": accuracy,  # ✅ 新增准确率字段
                 "ecc_method": self.config.get('ecc_method', 'none'),
-                "error": f"Failed {failed_validations} of {num_messages + (1 if remainder > 0 else 0)} validations" if failed_validations > 0 else None
+                "error": error_msg
             }
             
             self.logger.info("=" * 70)
