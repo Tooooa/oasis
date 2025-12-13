@@ -132,7 +132,9 @@ class WatermarkManager:
         self.log_dir = os.path.abspath(log_dir)  # Convert to absolute path
         os.makedirs(self.log_dir, exist_ok=True)
         
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        # Include microseconds to avoid logger/log-file collisions when multiple
+        # WatermarkManager instances are created within the same second.
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S_%f")
         # 🎯 新增: 日志文件名包含agent_id
         if agent_id is not None:
             self.log_file = os.path.join(self.log_dir, f"watermark-agent{agent_id}-{timestamp}.log")

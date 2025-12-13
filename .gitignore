@@ -71,6 +71,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Local configs (may contain API keys)
+config.json
+config_watermark.json
+
 # IDEs and editors
 .idea/
 .vscode/
