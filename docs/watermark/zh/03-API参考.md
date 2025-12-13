@@ -109,10 +109,3 @@ def extract_watermark_from_log(
 
 具体字段含义参考：`config.json.template`。
 
----
-
-## 参考资料
-
-- `docs/watermark/zh/01-快速开始指南.md`
-- `docs/watermark/zh/02-集成架构.md`
-- `docs/watermark/zh/OASIS行为序列说明.md`
