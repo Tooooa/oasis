@@ -93,6 +93,7 @@ docker-compose.override.yml
 
 # Logs
 *.log
+log/
 
 # Models
 models/
@@ -102,4 +103,15 @@ models/
 *.sqlite3
 *.sqlite
 
+# Experiment outputs
+outputs/databases/
+outputs/experiments/
+outputs/logs/
+outputs/twitter_exp/
+outputs/reddit_exp/
+
+# Web histories
+web2/
+
 tmp
+

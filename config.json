@@ -1,11 +1,10 @@
 {
     "_comment": "=== OASIS 水印集成配置文件 ===",
-    
     "_comment_api": "=== API 配置 ===",
     "api_provider": "deepseek",
     "deepseek": {
         "_comment": "不要把真实 API Key 提交到仓库；建议用环境变量 DEEPSEEK_API_KEY 或在本地私有文件中填写",
-        "api_key": "",
+        "api_key": "your-deepseek-api-key-here",
         "base_url": "https://api.deepseek.com",
         "model": "deepseek-chat"
     },
@@ -14,17 +13,14 @@
         "base_url": "https://api.openai.com/v1",
         "model": "gpt-4o-mini"
     },
-    
     "_comment_simulation": "=== 模拟配置 ===",
     "num_agents": 2,
     "num_rounds": 5,
     "platform": "reddit",
-    
     "_comment_context": "=== 上下文管理 ===",
     "_context_note": "CAMEL 上下文窗口设置，影响 Agent 记忆长度",
     "token_limit": 16000,
     "context_window_size": 10,
-    
     "_comment_watermark": "=== 水印配置 ===",
     "watermark_enabled": true,
     "watermark_config": {
@@ -33,7 +29,6 @@
         "embedding_strategy": "cyclic"
     },
     "log_dir": "./outputs/logs/watermark",
-    
     "_comment_database": "=== 数据库配置 ===",
     "database_path": "./outputs/databases/current/simulation.db"
 }

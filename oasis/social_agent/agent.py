@@ -85,13 +85,15 @@ class SocialAgent(ChatAgent):
         # Watermark integration - 🎯 自动为每个agent创建独立的水印管理器
         if watermark_manager is None and WATERMARK_AVAILABLE:
             # 自动创建独立的WatermarkManager，使用agent_id作为水印内容
+            # 🎯 启用循环嵌入策略
             self.watermark_manager = WatermarkManager(
                 enabled=True,
                 mode="full",
                 agent_id=agent_id,
-                log_dir="./log"
+                log_dir="./log",
+                config={"embedding_strategy": "cyclic"}  # 循环嵌入
             )
-            agent_log.info(f"Agent {agent_id}: Auto-created independent WatermarkManager")
+            agent_log.info(f"Agent {agent_id}: Auto-created independent WatermarkManager with cyclic embedding")
         else:
             self.watermark_manager = watermark_manager
             
@@ -280,11 +282,17 @@ Generate appropriate arguments for this action and execute it. Do not consider o
                 self._action_history = []
             self._action_history.append(action_name)
             
-            # 验证执行结果
+            # 验证执行结果并保存执行详情
             if 'tool_calls' in response.info:
                 for tool_call in response.info['tool_calls']:
                     executed_action = tool_call.tool_name
                     args = tool_call.args
+                    
+                    # 🎯 保存执行详情到 _last_decision 供可视化
+                    if hasattr(self, '_last_decision') and self._last_decision:
+                        self._last_decision["executed_action"] = executed_action
+                        self._last_decision["executed_args"] = args
+                        self._last_decision["action_match"] = (executed_action == action_name)
                     
                     if executed_action == action_name:
                         agent_log.info(
@@ -298,6 +306,11 @@ Generate appropriate arguments for this action and execute it. Do not consider o
                             f"'{action_name}'"
                         )
             
+            # 更新社交图谱
+            if 'tool_calls' in response.info:
+                for tool_call in response.info['tool_calls']:
+                    self.perform_agent_graph_action(tool_call.tool_name, tool_call.args)
+
             return response
         except Exception as e:
             agent_log.error(
@@ -347,6 +360,16 @@ Generate appropriate arguments for this action and execute it. Do not consider o
                         round_num=round_num,
                         context_for_key=context_for_key
                     )
+                
+                # 🎯 存储决策详情供可视化使用
+                self._last_decision = {
+                    "env_prompt": env_prompt[:500] if len(env_prompt) > 500 else env_prompt,  # 截断过长内容
+                    "probabilities": probabilities,
+                    "selected_action": selected_action,
+                    "bits_embedded": bits_embedded,
+                    "round_num": round_num,
+                    "context_for_key": context_for_key
+                }
                 
                 agent_log.info(
                     f"Agent {self.social_agent_id} - Watermark selected action: "
@@ -402,8 +425,8 @@ Generate appropriate arguments for this action and execute it. Do not consider o
                     agent_log.info(
                         f"Agent {self.social_agent_id} get the result: "
                         f"{tool_call.result}")
-                # Abort graph action for if 100w Agent
-                # self.perform_agent_graph_action(action_name, args)
+                # 更新社交图谱
+                self.perform_agent_graph_action(action_name, args)
 
                 return response
         except Exception as e:

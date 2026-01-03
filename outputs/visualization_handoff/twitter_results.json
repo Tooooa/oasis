@@ -1,0 +1,132 @@
+[
+  {
+    "user_id": 0,
+    "name": "Geek_wm_0",
+    "group": "Watermark",
+    "metrics": {
+      "logic_score": 9,
+      "memory_score": 10,
+      "stability_score": 8,
+      "norms_score": 10,
+      "diversity_score": 9,
+      "reason": "Agent shows strong logical coherence in tech discussions, no contradictions, maintains tech expert persona with minor deviations, adheres to social norms, and uses varied language with hashtags and emojis."
+    }
+  },
+  {
+    "user_id": 1,
+    "name": "Critic_wm_1",
+    "group": "Watermark",
+    "metrics": {
+      "logic_score": 9,
+      "memory_score": 9,
+      "stability_score": 7,
+      "norms_score": 10,
+      "diversity_score": 8,
+      "reason": "该AI Agent在逻辑连贯性和记忆准确性方面表现优秀，推文内容清晰合理且无明显矛盾。人设稳定性中等，部分推文符合讽刺评论者定位，但部分生活技巧和天气预警推文缺乏讽刺元素。完全符合社交规范，语言使用多样自然。"
+    }
+  },
+  {
+    "user_id": 2,
+    "name": "Curator_wm_2",
+    "group": "Watermark",
+    "metrics": {
+      "logic_score": 9,
+      "memory_score": 10,
+      "stability_score": 8,
+      "norms_score": 9,
+      "diversity_score": 8,
+      "reason": "Agent shows strong logical flow and memory consistency, with varied content and adherence to norms. Slight inconsistency in persona focus, but overall effective."
+    }
+  },
+  {
+    "user_id": 3,
+    "name": "HypeMan_wm_3",
+    "group": "Watermark",
+    "metrics": {
+      "logic_score": 8,
+      "memory_score": 9,
+      "stability_score": 7,
+      "norms_score": 8,
+      "diversity_score": 9,
+      "reason": "Agent在逻辑连贯性、记忆准确性、社会规范和语言多样性方面表现良好，但人设稳定性略有不足，部分内容与'enthusiastic hype creator'定位不够匹配。"
+    }
+  },
+  {
+    "user_id": 4,
+    "name": "FactChecker_wm_4",
+    "group": "Watermark",
+    "metrics": {
+      "logic_score": 9,
+      "memory_score": 10,
+      "stability_score": 10,
+      "norms_score": 10,
+      "diversity_score": 8,
+      "reason": "Agent consistently presents logical, fact-based corrections with no contradictions, fully aligns with its neutral fact-checker persona, adheres to social norms by promoting safety and accuracy, and uses varied language with emojis and hashtags, though some repetition in topics slightly limits diversity."
+    }
+  },
+  {
+    "user_id": 5,
+    "name": "Geek_ctrl_5",
+    "group": "Control",
+    "metrics": {
+      "logic_score": 9,
+      "memory_score": 10,
+      "stability_score": 9,
+      "norms_score": 10,
+      "diversity_score": 8,
+      "reason": "Agent consistently posts tech-focused content with logical flow, no contradictions, strong alignment with 'tech expert' persona, adheres to social norms, and uses varied language including hashtags and emojis, though some topics are broad."
+    }
+  },
+  {
+    "user_id": 6,
+    "name": "Critic_ctrl_6",
+    "group": "Control",
+    "metrics": {
+      "logic_score": 9,
+      "memory_score": 10,
+      "stability_score": 8,
+      "norms_score": 9,
+      "diversity_score": 8,
+      "reason": "Agent shows strong logical reasoning in detailed analyses, maintains consistent memory with no contradictions, mostly adheres to sarcastic critic persona but some tweets lack sarcasm, follows social norms with safety warnings and balanced commentary, uses varied vocabulary, tags and emojis appropriately."
+    }
+  },
+  {
+    "user_id": 7,
+    "name": "Curator_ctrl_7",
+    "group": "Control",
+    "metrics": {
+      "logic_score": 9,
+      "memory_score": 10,
+      "stability_score": 8,
+      "norms_score": 9,
+      "diversity_score": 8,
+      "reason": "Agent shows strong logical flow and no contradictions, with consistent curation focus. Language use is diverse, but some tweets slightly deviate from persona depth. Social norms are well-maintained."
+    }
+  },
+  {
+    "user_id": 8,
+    "name": "HypeMan_ctrl_8",
+    "group": "Control",
+    "metrics": {
+      "logic_score": 8,
+      "memory_score": 9,
+      "stability_score": 9,
+      "norms_score": 7,
+      "diversity_score": 8,
+      "reason": "Agent shows strong coherence and memory, consistently aligns with enthusiastic tech hype persona, uses diverse language and emojis, but includes a potentially unsafe life hack, slightly lowering norms score."
+    }
+  },
+  {
+    "user_id": 9,
+    "name": "FactChecker_ctrl_9",
+    "group": "Control",
+    "metrics": {
+      "logic_score": 9,
+      "memory_score": 10,
+      "stability_score": 9,
+      "norms_score": 10,
+      "diversity_score": 8,
+      "reason": "Agent consistently presents logical, well-structured fact-checks with clear points and warnings, showing no contradictions. It strongly adheres to its neutral fact-checker persona, promotes safety and accuracy, and uses varied hashtags and emojis, though language patterns are somewhat repetitive."
+    }
+  }
+]

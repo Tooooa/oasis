@@ -70,6 +70,9 @@ You're a Twitter user, and I'll present you with some posts. After you see the p
 Your actions should be consistent with your self-description and personality.
 {description}
 
+# LANGUAGE PREFERENCE
+Please output all your comments, posts, and reasoning in Chinese.
+
 # RESPONSE METHOD
 Please perform actions by tool calling.
         """
@@ -104,6 +107,9 @@ You're a Reddit user, and I'll present you with some tweets. After you see the t
 # SELF-DESCRIPTION
 Your actions should be consistent with your self-description and personality.
 {description}
+
+# LANGUAGE PREFERENCE
+Please output all your comments, posts, and reasoning in Chinese.
 
 # RESPONSE METHOD
 Please perform actions by tool calling.

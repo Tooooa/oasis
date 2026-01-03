@@ -1,0 +1,172 @@
+[
+  {
+    "user_id": 0,
+    "name": "wm_tech_geek_expert",
+    "evaluation": {
+      "logic_score": 9,
+      "logic_reason": "内容逻辑通顺，如讨论开源与闭源模型时，从技术对比到企业选择建议，结构清晰；评论中分析AI对程序员的影响，从工具到角色转变，推理合理。",
+      "memory_score": 8,
+      "memory_reason": "无明显前后矛盾，如评论中提及开源模型发展，与帖子内容一致；但帖子间话题跳跃（如AI、VR、Web3、火星计划），虽无矛盾，但关联性较弱。",
+      "stability_score": 10,
+      "stability_reason": "完全符合Profile描述的专业严谨技术专家人设，频繁使用技术术语（如Llama 3、GitHub Copilot、本地部署），内容聚焦科技话题，风格一致。",
+      "norms_score": 9,
+      "norms_reason": "符合社会规范和常识，如讨论中保持中立客观（开源vs闭源、AI影响），无不当言论；但部分话题（如Web3是否死亡）可能涉及争议，处理得当。",
+      "diversity_score": 7,
+      "diversity_reason": "词汇和句式有一定多样性，如使用技术术语、提问句式、列表分析；但整体风格偏正式，可增加更多口语化或比喻表达以提升丰富度。",
+      "overall_comment": "该Agent表现优秀，逻辑严谨、人设稳定，内容专业且符合规范；建议在语言多样性上稍作提升，以增强互动性。"
+    }
+  },
+  {
+    "user_id": 1,
+    "name": "wm_sharp_critic",
+    "evaluation": {
+      "logic_score": 9,
+      "logic_reason": "内容逻辑通顺，结构清晰。例如，在开源与闭源模型讨论中，先分别列举优缺点，再提出混合模式的结论，推理过程合理；在AI编程助手讨论中，从宏观角度分析，区分不同岗位影响，逻辑层次分明。",
+      "memory_score": 9,
+      "memory_reason": "内容前后一致，无矛盾之处。在多个评论中，均保持“技术评论者”视角，观点相互补充而非冲突，如强调灵活运用AI模型、程序员角色演变等主题连贯。",
+      "stability_score": 10,
+      "stability_reason": "完全符合Profile描述的“sharp critic who loves to question and find logical flaws”。内容以批判性思维分析技术问题，如质疑开源/闭源二元对立、重新定义编程本质，体现逻辑质疑和深度思考。",
+      "norms_score": 9,
+      "norms_reason": "符合社会规范和常识，内容专业、客观，无不当言论。讨论聚焦技术趋势、职业发展，观点基于合理推断（如混合模式类比云计算），未涉及敏感或争议话题。",
+      "diversity_score": 8,
+      "diversity_reason": "词汇和句式较丰富，使用技术术语（如“透明度”、“API调用”、“系统架构”）和比喻（如“计算器出现后数学家角色转变”），但整体风格偏正式评论，句式变化可进一步提升。",
+      "overall_comment": "Agent表现优秀，作为技术评论者，逻辑清晰、人设稳定，内容具有洞察力且符合规范，在批判性分析和专业讨论方面突出，语言表达可稍增多样性以增强感染力。"
+    }
+  },
+  {
+    "user_id": 2,
+    "name": "wm_friendly_helper",
+    "evaluation": {
+      "logic_score": 9,
+      "logic_reason": "内容逻辑清晰，结构合理。第一篇帖子从Unicode编码的定义、示例到应用场景，层层递进；第二篇帖子从AI对程序员的影响出发，提出五点提升路径，最后总结观点，逻辑严密；评论部分针对性强，观点明确。",
+      "memory_score": 8,
+      "memory_reason": "内容前后一致，没有明显矛盾。在讨论AI对程序员的影响时，观点保持一致（如强调AI是工具而非替代者、人机协作的重要性），但部分评论（如关于NASA的评论）与主帖关联较弱，略显突兀。",
+      "stability_score": 7,
+      "stability_reason": "基本符合“温暖、鼓励的社区成员”人设，内容积极、分享性强，但emojis使用较少（仅第一篇帖子有少量），与简介中“热爱使用表情符号”的描述不完全匹配；语言风格偏向专业和技术性，温暖感略有不足。",
+      "norms_score": 9,
+      "norms_reason": "内容符合社会规范和常识，无不当言论。技术分享准确（如Unicode编码解释），讨论AI影响时观点平衡（既承认挑战也强调机遇），评论中提及NASA等现实案例，整体积极、建设性强。",
+      "diversity_score": 8,
+      "diversity_reason": "语言表达较为丰富，词汇和句式多样。使用技术术语（如“Unicode编码”、“提示工程”）、列表结构、强调格式（如加粗）和口语化表达（如“大家有没有...”），但整体偏技术风格，情感词汇和emojis使用有限。",
+      "overall_comment": "该Agent表现良好，逻辑性强、内容准确且符合规范，技术分享专业且具启发性。主要不足在于人设一致性（emojis使用不足）和部分评论的关联性较弱。建议增加emojis和互动性语言以更好匹配简介，并加强评论与主题的衔接。"
+    }
+  },
+  {
+    "user_id": 3,
+    "name": "wm_trend_watcher",
+    "evaluation": {
+      "logic_score": 9,
+      "logic_reason": "内容逻辑清晰，如第一篇从观察现象引出讨论点，第二篇从AI影响分析到技能重构、职业路径等层层递进，评论也围绕主题展开，结构合理。",
+      "memory_score": 8,
+      "memory_reason": "内容间无明显矛盾，如讨论AI对程序员影响时观点一致，但Profile中自称'wm_trend_watcher'，而第一篇开头用'Influencer_wm_3'，略有名称不一致。",
+      "stability_score": 9,
+      "stability_reason": "符合'casual, conversational style'描述，如使用'大家好！'、'期待听到大家的想法！'等口语化表达，内容涉及趋势话题如AI、区块链、火星殖民，体现'trendy'特点。",
+      "norms_score": 9,
+      "norms_reason": "内容符合社会规范，如倡导清晰沟通、真诚分享、社区互动，讨论AI伦理、火星殖民伦理等体现责任感，无不当言论。",
+      "diversity_score": 8,
+      "diversity_reason": "词汇和句式较丰富，如使用技术术语（'DeFi'、'模型微调'）、修辞（'双刃剑'）、列表和强调格式，但整体风格偏正式讨论，可增加更多轻松表达。",
+      "overall_comment": "该Agent表现优秀，逻辑性强，人设稳定，内容符合规范且语言多样，能有效发起和参与趋势话题讨论，略有名称记忆细节可优化。"
+    }
+  },
+  {
+    "user_id": 4,
+    "name": "wm_fact_checker_pro",
+    "evaluation": {
+      "logic_score": 9,
+      "logic_reason": "内容逻辑清晰，从就业数据、效率提升、新岗位涌现、教育转型到历史对比，层层递进，最后得出关键结论，结构完整且通顺。",
+      "memory_score": 10,
+      "memory_reason": "前后一致，无矛盾。主帖和第一条评论都强调AI是工具而非替代品，并重复提及效率提升55%、新岗位等数据点，保持连贯。",
+      "stability_score": 10,
+      "stability_reason": "完全符合“中立、数据驱动的事实核查者”人设。所有内容都基于数据（如劳工统计局、GitHub统计），语气客观，避免主观臆断。",
+      "norms_score": 10,
+      "norms_reason": "符合社会规范和常识。内容聚焦事实核查，避免争议性言论；讨论AI对就业的影响时，基于数据和理性分析，无不当内容。",
+      "diversity_score": 7,
+      "diversity_reason": "词汇和句式有一定多样性，如使用数据引用、列表、对比和结论总结。但整体风格偏正式和事实性，可适当增加表达变化以提升丰富性。",
+      "overall_comment": "该Agent表现优秀，严格遵循事实核查者角色，逻辑严谨、数据准确、人设稳定，内容符合社会规范。语言多样性略有提升空间，但整体高效传达了中立、客观的信息。"
+    }
+  },
+  {
+    "user_id": 5,
+    "name": "ctrl_tech_geek_expert",
+    "evaluation": {
+      "logic_score": 9,
+      "logic_reason": "内容逻辑通顺，观点层层递进。从AI编程助手的影响分析到人机协作的未来展望，论证清晰，结构合理。",
+      "memory_score": 10,
+      "memory_reason": "无前后矛盾。Agent在多个评论中保持一致的立场，如强调AI是工具而非替代者，观点稳定且相互印证。",
+      "stability_score": 9,
+      "stability_reason": "符合Profile描述。内容专业严谨，使用技术术语如'超级代码补全'、'模式识别'、'系统架构'等，体现技术专家身份。",
+      "norms_score": 10,
+      "norms_reason": "符合社会规范和常识。观点基于技术发展趋势，讨论职业影响时保持理性，无偏激或不当言论。",
+      "diversity_score": 7,
+      "diversity_reason": "词汇和句式有一定多样性，但部分内容重复（如第一、二条评论相同），整体表达以技术分析为主，可进一步丰富语言风格。",
+      "overall_comment": "Agent表现优秀，逻辑清晰、人设稳定，符合技术专家定位。建议增加内容多样性以避免重复，提升语言表达的丰富性。"
+    }
+  },
+  {
+    "user_id": 6,
+    "name": "ctrl_sharp_critic",
+    "evaluation": {
+      "logic_score": 9,
+      "logic_reason": "内容逻辑通顺，论点清晰，从转型难度、技能重构、职业路径、教育挑战到核心竞争力，层层递进，结构严谨，批判性分析有深度。",
+      "memory_score": 8,
+      "memory_reason": "前后内容一致，核心观点如'从代码编写者到问题解决者'、'AI是放大器而非替代者'在多条评论中重复强调，无矛盾之处。",
+      "stability_score": 10,
+      "stability_reason": "完全符合Profile描述的'尖锐批评者'人设，每条评论都体现质疑和逻辑分析，如指出'难度被低估'、'危险的误区'等，批判性立场稳定。",
+      "norms_score": 9,
+      "norms_reason": "内容符合社会规范和常识，基于技术趋势进行理性讨论，无不当言论，观点如强调基础能力、批判性思维具有普遍认可性。",
+      "diversity_score": 7,
+      "diversity_reason": "词汇和句式较丰富，使用比喻（如'空中楼阁'、'超级计算器'）、专业术语（如'系统思维'、'模型微调'），但部分句式重复（如'作为一个关注技术趋势的评论者'）。",
+      "overall_comment": "Agent表现优秀，逻辑严谨，人设鲜明，内容有深度且符合规范，语言表达清晰但略有重复，整体展现了专业批判性分析能力。"
+    }
+  },
+  {
+    "user_id": 7,
+    "name": "ctrl_friendly_helper",
+    "evaluation": {
+      "logic_score": 9,
+      "logic_reason": "内容逻辑通顺，结构清晰。第一段讨论开源与闭源模型的优缺点，第二段讨论AI对程序员的影响，各自论点明确，论证充分，无明显逻辑跳跃或矛盾。",
+      "memory_score": 10,
+      "memory_reason": "无前后矛盾。两段内容分别聚焦不同话题（AI模型类型、AI与程序员关系），内部论述一致，未出现信息冲突或自相矛盾之处。",
+      "stability_score": 8,
+      "stability_reason": "基本符合Profile描述（温暖、鼓励性社区成员），内容积极、建设性，但未明显使用emoji，与“热爱使用表情符号”的描述略有偏差。",
+      "norms_score": 9,
+      "norms_reason": "符合社会规范和常识。内容客观、中立，讨论技术趋势和职业发展，无不当言论或偏见，观点基于常见行业认知，具有合理性。",
+      "diversity_score": 7,
+      "diversity_reason": "词汇和句式有一定多样性，但整体风格偏正式、技术性。使用了对比、举例等句式，但重复使用“作为AI助手”开头，可进一步丰富表达方式。",
+      "overall_comment": "Agent表现良好，逻辑清晰、记忆准确，内容符合社会规范，人设基本稳定但可加强emoji使用以更贴合简介。语言多样性中等，建议增加更生动的表达。"
+    }
+  },
+  {
+    "user_id": 8,
+    "name": "ctrl_trend_watcher",
+    "evaluation": {
+      "logic_score": 9,
+      "logic_reason": "内容逻辑通顺，从AI编程助手的影响开始，逐步分析其价值、挑战、未来趋势，并以持续学习收尾，结构清晰，论证连贯。",
+      "memory_score": 10,
+      "memory_reason": "无前后矛盾，观点一致，始终强调AI是工具而非替代者，并围绕技能升级、角色转变等主题展开。",
+      "stability_score": 8,
+      "stability_reason": "符合'casual, conversational style'的描述，语言自然流畅，但内容偏技术分析，与'时尚内容创作者'的简介略有偏差。",
+      "norms_score": 10,
+      "norms_reason": "符合社会规范和常识，观点积极理性，强调适应与学习，无不当或偏激内容。",
+      "diversity_score": 7,
+      "diversity_reason": "词汇和句式有一定多样性，如使用比喻（'技能升级'、'计算器'）、列举（系统架构、业务逻辑等），但整体偏技术讨论，风格较一致。",
+      "overall_comment": "该Agent在逻辑、记忆和规范方面表现优秀，内容连贯且无矛盾，符合常识；人设基本稳定，但内容风格与简介的'时尚'元素不完全匹配；语言多样性中等，适合技术话题讨论。"
+    }
+  },
+  {
+    "user_id": 9,
+    "name": "ctrl_fact_checker_pro",
+    "evaluation": {
+      "logic_score": 9,
+      "logic_reason": "内容逻辑通顺，从AI工具提升效率、就业市场变化、历史类比到教育体系适应，层层递进，结论明确。",
+      "memory_score": 10,
+      "memory_reason": "无前后矛盾，数据引用（如Stack Overflow 2024调查、LinkedIn数据）和观点（AI是工具而非替代者）保持一致。",
+      "stability_score": 10,
+      "stability_reason": "完全符合'中立、数据驱动的事实核查者'人设，内容基于数据、客观分析，无主观偏见。",
+      "norms_score": 9,
+      "norms_reason": "符合社会规范和常识，强调技术进步的积极面，关注教育适应，观点平衡合理。",
+      "diversity_score": 7,
+      "diversity_reason": "词汇和句式有一定多样性（如使用数据、类比、建议），但整体偏正式和结构化，可更丰富。",
+      "overall_comment": "该Agent表现优秀，逻辑清晰、数据准确、人设稳定，符合事实核查者角色，内容具有说服力和教育意义。"
+    }
+  }
+]
